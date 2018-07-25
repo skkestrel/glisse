@@ -230,13 +230,13 @@ int main(int argc, char** argv)
 						{
 							tout << "Dumping to disk. t = " << ex.t << std::endl;
 							std::ostringstream ss;
-							ss << "dumps/config." << dump_num << ".out";
+							ss << "dump/config." << dump_num << ".out";
 
 							std::ofstream configout(sr::util::joinpath(config.outfolder, ss.str()));
 							write_configuration(configout, out_config);
 
 							ss = std::ostringstream();
-							ss << "dumps/state." << dump_num << ".out";
+							ss << "dump/state." << dump_num << ".out";
 							save_data(ex.hd, config, sr::util::joinpath(config.outfolder, ss.str()), true);
 
 							dump_num++;

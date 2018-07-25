@@ -25,16 +25,16 @@ namespace wh
 		const float64_t r2;
 		const float64_t* planet_rh;
 
-		MVSKernel(const DevicePlanetPhaseSpace& planets, const Dvf64_3& h0_log, const Dvf64& _planet_rh, double _r2, size_t _tbsize, float64_t _dt) :
-			planet_m(planets.m.data().get()),
-			mu(planets.m[0]),
-			planet_h0_log(h0_log.data().get()),
-			planet_r_log(planets.r_log.data().get()),
-			planet_n(planets.n_alive),
+		MVSKernel(float64_t mu_, const f64_3* planet_r_log_, const float64_t* planet_m_, const size_t planet_n_, const f64_3* h0_log, const float64_t* _planet_rh, double _r2, size_t _tbsize, float64_t _dt) :
+			planet_m(planet_m_),
+			mu(mu_),
+			planet_h0_log(h0_log),
+			planet_r_log(planet_r_log_),
+			planet_n(planet_n_),
 			tbsize(_tbsize),
 			dt(_dt),
 			r2(_r2),
-			planet_rh(_planet_rh.data().get())
+			planet_rh(_planet_rh)
 		{ }
 
 		__host__ __device__
@@ -73,7 +73,7 @@ namespace wh
 			float64_t n_ = sqrt(mu / (a * a * a));
 			float64_t ecosEo = 1.0 - dist / a;
 			float64_t esinEo = vdotr / (n_ * a * a);
-			float64_t e = sqrt(ecosEo * ecosEo + esinEo * esinEo);
+			// float64_t e = sqrt(ecosEo * ecosEo + esinEo * esinEo);
 
 			// subtract off an integer multiple of complete orbits
 			float64_t dM = this->dt * n_ - M_2PI * (int) (dt * n_ / M_2PI);
@@ -120,6 +120,13 @@ namespace wh
 			{
 				if (flags == 0)
 				{
+					if (step < 100)
+					{
+					printf("%.26f %.26f %.26f\n", r.x, r.y, r.z);
+					printf("%.26f %.26f %.26f\n", v.x, v.y, v.z);
+					printf("%.26f %.26f %.26f\n\n", a.x, a.y, a.z);
+					}
+
 					// kick
 					v = v + a * (_dt / 2);
 
@@ -130,9 +137,16 @@ namespace wh
 					// planet 0 is not counted
 					for (uint32_t i = 1; i < static_cast<uint32_t>(planet_n); i++)
 					{
-						f64_3 dr = r - r_log[step * (planet_n - 1) + i - 1];
+						f64_3 dr = r - *(r_log + step * (planet_n - 1) + i - 1);
+						if (step < 100)
+						printf("%.26f %.26f %.26f\n", dr.x, dr.y, dr.z);
 
-						float64_t rad = dr.lensq();
+						float64_t rad = dr.x * dr.x;
+						rad += dr.y * dr.y;
+						rad += dr.z * dr.z;
+
+						if (step < 100)
+						printf("%.26f\n", rad);
 
 						if (rad < rh[i] * rh[i] * _r2 * _r2 && flags == 0)
 						{
@@ -144,6 +158,9 @@ namespace wh
 						float64_t fac = m[i] * inv3;
 
 						a -= dr * fac;
+
+						if (step < 100)
+						printf("%.26f %.26f %.26f\n\n", a.x, a.y, a.z);
 					}
 
 					float64_t rad = r.lensq();
@@ -230,10 +247,20 @@ namespace wh
 		cudaStreamSynchronize(stream);
 	}
 
-	void WHCudaIntegrator::integrate_particles_timeblock_cuda(cudaStream_t stream, size_t planet_data_id, const DevicePlanetPhaseSpace& pl, DeviceParticlePhaseSpace& pa)
+	void WHCudaIntegrator::integrate_particles_timeblock_cuda(cudaStream_t stream, const HostPlanetPhaseSpace& pl_h, size_t planet_data_id, const DevicePlanetPhaseSpace& pl, DeviceParticlePhaseSpace& pa)
 	{
 		auto it = thrust::make_zip_iterator(thrust::make_tuple(pa.begin(), device_begin()));
-		thrust::for_each(thrust::cuda::par.on(stream), it, it + pa.n_alive, MVSKernel(pl, device_h0_log(planet_data_id), device_planet_rh, base.encounter_r2, base.tbsize, base.dt));
+
+		thrust::for_each(thrust::cuda::par.on(stream), it, it + pa.n_alive,
+			MVSKernel(
+				pl_h.m()[0],
+				pl.r_log.data().get(),
+				pl.m.data().get(),
+				pl.n_alive,
+				device_h0_log(planet_data_id).data().get(),
+				device_planet_rh.data().get(),
+				base.encounter_r2,
+				base.tbsize, base.dt));
 	}
 }
 }

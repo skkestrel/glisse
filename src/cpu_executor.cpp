@@ -30,9 +30,6 @@ namespace exec
 		output << "e_0 (planets) = " << e_0 << std::endl;
 		output << "n_particle = " << hd.particles.n() << std::endl;
 		output << "n_particle_alive = " << hd.particles.n_alive() << std::endl;
-		output << "==================================" << std::endl;
-		output << "Sending initial conditions to GPU." << std::endl;
-
 		starttime = std::chrono::high_resolution_clock::now();
 		output << "       Starting simulation.       " << std::endl << std::endl;
 

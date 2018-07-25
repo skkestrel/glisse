@@ -1,5 +1,6 @@
 .PHONY: all clean
 
+NVCC = /usr/local/cuda-9.2/bin/nvcc
 SRC_DIR = src
 BIN_DIR = bin
 OBJ_DIR = obj
@@ -22,7 +23,7 @@ LDFLAGS = -pthread # -lasan
 
 sr:
 	@mkdir -p $(BIN_DIR)
-	@nvcc $(TARGETS_DIR)/main.cpp $(DOCOPT_DIR)/docopt.cpp $(SRC_FILES) $(SRC_DIR)/*.cu -lineinfo -g -maxrregcount 64 -arch=sm_35 --std=c++11 --compiler-options "-Wall -Wextra ${WFLAGS} -fstack-protector" -o $(BIN_DIR)/sr -O3
+	@$(NVCC) $(TARGETS_DIR)/main.cpp $(DOCOPT_DIR)/docopt.cpp $(SRC_FILES) $(SRC_DIR)/*.cu -lineinfo -g -maxrregcount 64 -arch=sm_35 --std=c++11 --compiler-options "-Wall -Wextra ${WFLAGS} -fstack-protector" -o $(BIN_DIR)/sr -O0
 
 clean:
 	rm -r $(OBJ_DIR)/* 

@@ -184,6 +184,10 @@ namespace exec
 		auto& planets = dd.planet_phase_space();
 
 		memcpy_htd(planets.r_log, hd.planets.r_log().slow, htd_stream);
+		std::cout << planets.r_log[0] << std::endl;
+		std::cout << planets.r_log[1] << std::endl;
+		std::cout << planets.r_log[2] << std::endl;
+		std::cout << planets.r_log[3] << std::endl;
 		cudaStreamSynchronize(htd_stream);
 
 		integrator.upload_planet_log_cuda(htd_stream, dd.planet_data_id);
@@ -204,7 +208,7 @@ namespace exec
 		if (dd.particle_phase_space().n_alive > 0)
 		{
 			cudaEventRecord(start_event, main_stream);
-			integrator.integrate_particles_timeblock_cuda(main_stream, dd.planet_data_id, dd.planet_phase_space(), dd.particle_phase_space());
+			integrator.integrate_particles_timeblock_cuda(main_stream, hd.planets, dd.planet_data_id, dd.planet_phase_space(), dd.particle_phase_space());
 			cudaEventRecord(gpu_finish_event, main_stream);
 		}
 
