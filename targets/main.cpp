@@ -139,9 +139,6 @@ int main(int argc, char** argv)
 	std::time_t t = std::time(nullptr);
 	std::tm tm = *std::localtime(&t);
 
-	std::ofstream encounterlog(sr::util::joinpath(config.outfolder, "encounter.out"));
-	ex.encounter_output = &encounterlog;
-
 	std::ofstream timelog(sr::util::joinpath(config.outfolder, "time.out"));
 	timelog << "start " << std::put_time(&tm, "%c %Z") << std::endl;
 
@@ -194,7 +191,7 @@ int main(int argc, char** argv)
 
 					if (output_energy)
 					{
-						timelog << std::setprecision(13) << "time " << elapsed << " " << ex.t << " " << ex.hd.particles.n_alive() << " " << ex.hd.particles.n_encounter() << std::endl;
+						timelog << std::setprecision(13) << "time " << elapsed << " " << ex.t << " " << ex.hd.particles.n_alive() << std::endl;
 						timelog << "ep " << e_ << std::endl;
 						timelog << "lp " << l_ << std::endl;
 					}
@@ -205,7 +202,7 @@ int main(int argc, char** argv)
 						tout << "t=" << ex.t << " (" << elapsed / total * 100 << "% " << elapsed << "m elapsed, "
 							<< total << "m total " << total - elapsed << "m remain)" << std::endl;
 						tout << "Error = " << (e_ - ex.e_0) / ex.e_0 * 100 << ", " <<
-							ex.hd.particles.n_alive() << " particles remaining, " << ex.hd.particles.n_encounter() << " in encounter" << std::endl;
+							ex.hd.particles.n_alive() << " particles remaining" << std::endl;
 
 						tout << "GPU took " << std::setprecision(4) << timediff << " ms longer than CPU" << std::endl;
 					}

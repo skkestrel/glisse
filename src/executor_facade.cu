@@ -14,8 +14,7 @@ namespace exec
 		dd(std::make_unique<DeviceData>()),
 		impl(std::make_unique<Executor>(_hd, *dd.get(), config, out)),
 		t(impl->t),
-		e_0(impl->e_0),
-		encounter_output(impl->encounter_output)
+		e_0(impl->e_0)
 	{
 	}
 

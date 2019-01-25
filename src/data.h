@@ -159,14 +159,6 @@ namespace data
 		inline const size_t& n_alive() const { return base.n_alive; }
 
 		/**
-		 * Gets the number of particles that are currently in an encounter.
-		 * Particles in encounter are not run on the block integrator but are
-		 * integrated afterwards.
-		 */
-		inline size_t& n_encounter() { return _n_encounter; }
-		inline const size_t& n_encounter() const { return _n_encounter; }
-
-		/**
 		 * Gets the particle death flags.
 		 * Guide:
 		 * High byte:
@@ -175,7 +167,6 @@ namespace data
 		 *   0x80 Particle absorbed by planet
 		 *   0x04 Kepler didn't converge
 		 *   0x02 Out of bounds
-		 *   0x01 Particle is in close encounter
 		 */
 		inline Vu16& deathflags() { return _deathflags; }
 		inline const Vu16& deathflags() const { return _deathflags; }
@@ -199,7 +190,7 @@ namespace data
 		inline HostParticlePhaseSpace() { }
 
 		/** Ctor with size argument and cpu_only. cpu_only must be set to true when CPU block integration is required. */
-		inline HostParticlePhaseSpace(size_t siz, bool cpu_only) : base(siz), _n_encounter(0), _deathflags(siz), _deathtime(siz), _cpu_only(cpu_only)
+		inline HostParticlePhaseSpace(size_t siz, bool cpu_only) : base(siz), _deathflags(siz), _deathtime(siz), _cpu_only(cpu_only)
 		{ 
 			if (cpu_only)
 			{
@@ -231,16 +222,7 @@ namespace data
 		 */
 		void filter(const std::vector<size_t>& filter, HostParticlePhaseSpace& out) const;
 
-		/**
-		 * Gets the planet ID that is in an encounter with the particle.
-		 */
-		inline static uint8_t encounter_planet(uint16_t deathflags)
-		{
-			return static_cast<uint8_t>((deathflags & 0xFF00) >> 8);
-		}
-
 	private:
-		size_t _n_encounter;
 
 		Vu16 _deathflags;
 		Vf32 _deathtime;
@@ -312,11 +294,11 @@ namespace data
 		inline const sr::util::LogQuartet<Vf64_3>& v_log() const { return _v_log; }
 
 		inline HostPlanetPhaseSpace() { }
-		inline HostPlanetPhaseSpace(size_t siz, size_t tb_size, size_t ce_factor) :
+		inline HostPlanetPhaseSpace(size_t siz, size_t tb_size) :
 			base(siz), _n_alive_old(siz)
 		{
-			_r_log = sr::util::LogQuartet<Vf64_3>(((n() - 1) * tb_size), ce_factor);
-			_v_log = sr::util::LogQuartet<Vf64_3>(((n() - 1) * tb_size), ce_factor);
+			_r_log = sr::util::LogQuartet<Vf64_3>(((n() - 1) * tb_size));
+			_v_log = sr::util::LogQuartet<Vf64_3>(((n() - 1) * tb_size));
 		}
 
 		/**
@@ -382,15 +364,10 @@ namespace data
 
 		double cull_radius;
 
-		bool resolve_encounters, readmomenta, writemomenta, trackbinary, readsplit, writesplit, dumpbinary, writebinary, readbinary;
+		bool readmomenta, writemomenta, trackbinary, readsplit, writesplit, dumpbinary, writebinary, readbinary;
 
 		std::string icsin, plin, hybridin, hybridout;
 		std::string outfolder;
-
-		inline uint32_t fast_timestep_factor() const
-		{
-			return resolve_encounters ? (wh_ce_n1 * wh_ce_n2) : 1;
-		}
 
 		Configuration();
 
@@ -406,7 +383,6 @@ namespace data
 		{
 			Configuration config;
 			config.write_bary_track = false;
-			config.resolve_encounters = false;
 			config.tbsize = 0;
 			config.wh_ce_n1 = 0;
 			config.wh_ce_n2 = 0;

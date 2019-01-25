@@ -1,6 +1,5 @@
 #include "data.cuh"
 #include "data.h"
-#include "integrator.cuh"
 #include "wh.cuh"
 #include <ctime>
 #include <chrono>
@@ -42,7 +41,6 @@ namespace exec
 		float64_t e_0;
 
 		std::ostream& output;
-		std::ostream* encounter_output;
 
 		size_t resync_counter;
 

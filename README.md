@@ -34,7 +34,6 @@ days and au, the solar mass should be set to 4 * pi^2 / (365.25)^2 = 2.959 x 10^
 | Write-Barycentric-Track | The integrator will write barycentric instead of heliocentric orbital elements to the particle tracks if enabled. | 0 |
 | Split-Track-File | If zero, the integrator will write particle tracks into a single file named `track' in the output directory. If nonzero, the integrator will write particle tracks to files with a maximum size of Split-Track-File in bytes, named sequentially in a folder named `tracks' in the output directory. | 0 |
 | Dump-Interval | The integrator will dump particle and planet states to a folder named `dumps' in the output directory every Dump-Interval number of timeblocks. 0 to disable. | 1000 |
-| Resolve-Encounters | Whether to resolve close encounters. Currently experimental. | 0 |
 | Write-Binary-Output | Whether to write the output state file in binary format. | 0 | 
 | Read-Binary-Input | Whether to write the input state file in binary format. | 0 | 
 | Input-File | The absolute path of the input state file to read. | |

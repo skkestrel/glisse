@@ -95,7 +95,7 @@ namespace util
 
 	namespace detail
 	{
-		template<typename Self, typename Return, bool slow, bool old>
+		template<typename Self, typename Return, bool old>
 		struct Selector
 		{
 			static Return get(Self x)
@@ -105,27 +105,15 @@ namespace util
 		};
 
 		template<typename Self, typename Return>
-		struct Selector<Self, Return, false, false>
+		struct Selector<Self, Return, false>
 		{
 			static Return get(Self x) { return x->log; }
 		};
 
 		template<typename Self, typename Return>
-		struct Selector<Self, Return, false, true>
+		struct Selector<Self, Return, true>
 		{
 			static Return get(Self x) { return x->old; }
-		};
-
-		template<typename Self, typename Return>
-		struct Selector<Self, Return, true, false>
-		{
-			static Return get(Self x) { return x->slow; }
-		};
-
-		template<typename Self, typename Return>
-		struct Selector<Self, Return, true, true>
-		{
-			static Return get(Self x) { return x->slow_old; }
 		};
 	}
 
@@ -134,37 +122,29 @@ namespace util
 	{
 		Vector log;
 		Vector old;
-		Vector slow;
-		Vector slow_old;
 
 		inline LogQuartet() { }
 
-		inline LogQuartet(size_t slow_size, size_t speed_factor)
+		inline LogQuartet(size_t slow_size)
 		{
-			slow = slow_old = Vector(slow_size);
-
-			if (speed_factor > 1)
-			{
-				log = old = Vector(slow_size * speed_factor);
-			}
+			log = old = Vector(slow_size);
 		}
 
 		inline void swap_logs()
 		{
 			std::swap(log, old);
-			std::swap(slow, slow_old);
 		}
 
-		template<bool slow, bool old>
+		template<bool old>
 		inline Vector& get()
 		{
-			return detail::Selector<LogQuartet<Vector>*, Vector&, slow, old>::get(this);
+			return detail::Selector<LogQuartet<Vector>*, Vector&, old>::get(this);
 		}
 
-		template<bool slow, bool old>
+		template<bool old>
 		inline const Vector& get() const
 		{
-			return detail::Selector<const LogQuartet<Vector>*, const Vector&, slow, old>::get(this);
+			return detail::Selector<const LogQuartet<Vector>*, const Vector&, old>::get(this);
 		}
 	};
 

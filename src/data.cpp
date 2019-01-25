@@ -91,7 +91,6 @@ namespace data
 	void HostParticlePhaseSpace::filter(const std::vector<size_t>& filter, HostParticlePhaseSpace& out) const
 	{
 		base.filter(filter, out.base);
-		out._n_encounter = 0;
 		out._cpu_only = _cpu_only;
 		out._deathflags = std::vector<uint16_t>(out.base.n);
 		out._deathtime = std::vector<float>(out.base.n);
@@ -182,7 +181,6 @@ namespace data
 
 		dump_every = 1000;
 		max_particle = static_cast<uint32_t>(-1);
-		resolve_encounters = false;
 		big_g = 1;
 		icsin = "";
 		plin = "";
@@ -238,14 +236,6 @@ namespace data
 					out->big_g = std::stod(second);
 				else if (first == "Cull-Radius")
 					out->cull_radius = std::stod(second);
-				else if (first == "WH-Encounter-N1")
-					out->wh_ce_n1 = std::stou(second);
-				else if (first == "WH-Encounter-N2")
-					out->wh_ce_n2 = std::stou(second);
-				else if (first == "WH-Encounter-R1")
-					out->wh_ce_r1 = std::stod(second);
-				else if (first == "WH-Encounter-R2")
-					out->wh_ce_r2 = std::stod(second);
 				else if (first == "Enable-GPU")
 					out->use_gpu = std::stoi(second) != 0;
 				else if (first == "CPU-Thread-Count")
@@ -266,8 +256,6 @@ namespace data
 					out->split_track_file = std::stou(second);
 				else if (first == "Dump-Interval")
 					out->dump_every = std::stou(second);
-				else if (first == "Resolve-Encounters")
-					out->resolve_encounters = std::stoi(second) != 0;
 				else if (first == "Write-Split-Output")
 					out->writesplit = std::stoi(second) != 0;
 				else if (first == "Read-Split-Input")
@@ -306,10 +294,6 @@ namespace data
 			std::cerr << "Warning: Output-Folder was not specified, defaulting to ./" << std::endl;
 			out->outfolder = "./";
 		}
-		if (out->cull_radius != 0.5 && out->resolve_encounters)
-		{
-			std::cerr << "Warning: Cull-Radius was set but Resolve-Encounters was also set: Planets will not be culled with Cull-Radius!" << std::endl;
-		}
 		if (out->readsplit && out->readbinary)
 		{
 			std::cerr << "Warning: Read-Split-Input was selected but Read-Binary-Input was also specified. Ignoring Read-Binary-Input" << std::endl;
@@ -322,10 +306,6 @@ namespace data
 		if (!out->writesplit && out->hybridout == "")
 		{
 			throw std::runtime_error("Error: Output-File was not specified");
-		}
-		if (out->resync_every != 1 && out->resolve_encounters)
-		{
-			throw std::runtime_error("Error: Resync-Interval must be 1 when Resolve-Encounters is enabled");
 		}
 		if (!out->writesplit && out->hybridin == "")
 		{
@@ -345,10 +325,6 @@ namespace data
 		outstream << "Final-Time " << out.t_f << std::endl;
 		outstream << "Time-Block-Size " << out.tbsize << std::endl;
 		outstream << "Cull-Radius " << out.cull_radius << std::endl;
-		outstream << "WH-Encounter-N1 " << out.wh_ce_n1 << std::endl;
-		outstream << "WH-Encounter-N2 " << out.wh_ce_n2 << std::endl;
-		outstream << "WH-Encounter-R1 " << out.wh_ce_r1 << std::endl;
-		outstream << "WH-Encounter-R2 " << out.wh_ce_r2 << std::endl;
 		outstream << "Enable-GPU " << out.use_gpu << std::endl;
 		outstream << "CPU-Thread-Count " << out.num_thread << std::endl;
 		outstream << "Limit-Particle-Count " << out.max_particle << std::endl;
@@ -359,7 +335,6 @@ namespace data
 		outstream << "Write-Barycentric-Track" << out.write_bary_track << std::endl;
 		outstream << "Split-Track-File " << out.split_track_file << std::endl;
 		outstream << "Dump-Interval " << out.dump_every << std::endl;
-		outstream << "Resolve-Encounters " << out.resolve_encounters << std::endl;
 		outstream << "Write-Split-Output " << out.writesplit << std::endl;
 		outstream << "Write-Binary-Output " << out.writebinary << std::endl;
 		outstream << "Read-Split-Input " << out.readsplit << std::endl;
@@ -378,7 +353,7 @@ namespace data
 		size_t npl;
 		plin >> npl;
 
-		pl = HostPlanetPhaseSpace(npl, config.tbsize, config.fast_timestep_factor());
+		pl = HostPlanetPhaseSpace(npl, config.tbsize);
 
 		for (size_t i = 0; i < npl; i++)
 		{
@@ -435,7 +410,7 @@ namespace data
 		size_t npl;
 		ss >> npl;
 		
-		pl = HostPlanetPhaseSpace(npl, config.tbsize, config.fast_timestep_factor());
+		pl = HostPlanetPhaseSpace(npl, config.tbsize);
 
 		for (size_t i = 0; i < npl; i++)
 		{
@@ -487,7 +462,7 @@ namespace data
 		uint64_t templl;
 		read_binary<uint64_t>(in, templl);
 		size_t npl = static_cast<size_t>(templl);
-		pl = HostPlanetPhaseSpace(npl, config.tbsize, config.fast_timestep_factor());
+		pl = HostPlanetPhaseSpace(npl, config.tbsize);
 
 		for (size_t i = 0; i < pl.n(); i++)
 		{

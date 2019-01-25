@@ -1,4 +1,3 @@
-#include "integrator.h"
 #include "wh.h"
 #include <ctime>
 #include <chrono>
@@ -18,7 +17,6 @@ namespace exec
 		float64_t e_0;
 
 		std::ostream& output;
-		std::ostream* encounter_output;
 
 		const sr::data::Configuration& config;
 

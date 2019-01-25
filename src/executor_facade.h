@@ -24,8 +24,6 @@ namespace sr
 			float64_t& t;
 			float64_t& e_0;
 
-			std::ostream*& encounter_output;
-
 
 			ExecutorFacade(sr::data::HostData& hd, const sr::data::Configuration& config, std::ostream& out);
 			~ExecutorFacade();

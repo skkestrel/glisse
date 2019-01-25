@@ -17,7 +17,6 @@ namespace data
 
 		size_t n_total;
 		size_t n_alive;
-		size_t n_encounter;
 
 		DeviceParticlePhaseSpace(const DeviceParticlePhaseSpace&) = delete;
 
