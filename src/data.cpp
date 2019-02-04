@@ -332,7 +332,7 @@ namespace data
 		outstream << "Status-Interval " << out.energy_every << std::endl;
 		outstream << "Track-Interval " << out.track_every << std::endl;
 		outstream << "Resync-Interval " << out.resync_every << std::endl;
-		outstream << "Write-Barycentric-Track" << out.write_bary_track << std::endl;
+		outstream << "Write-Barycentric-Track " << out.write_bary_track << std::endl;
 		outstream << "Split-Track-File " << out.split_track_file << std::endl;
 		outstream << "Dump-Interval " << out.dump_every << std::endl;
 		outstream << "Write-Split-Output " << out.writesplit << std::endl;
