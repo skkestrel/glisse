@@ -129,11 +129,17 @@ namespace wh
 
 		planet_h0_log = sr::util::LogQuartet<Vf64_3>(tbsize);
 
+		// Planet index 0 is always the sun.
 		planet_eta[0] = pl.m()[0];
+
 		for (size_t i = 1; i < pl.n(); i++)
 		{
 			planet_eta[i] = planet_eta[i - 1] + pl.m()[i];
+
 			planet_rh[i] = config.cull_radius;
+			// Although the name of the variable is planet_rh, this is actually the exit criteria for the particles:
+			// a particle will be "killed" when it comes within planet_rh[i] of planet i. One might want to set this number
+			// to be a multiple of the planet's respective hill sphere.
 		}
 
 		sr::convert::helio_to_jacobi_r_planets(pl, planet_eta, planet_rj);
