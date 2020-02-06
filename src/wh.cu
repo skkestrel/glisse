@@ -2,6 +2,7 @@
 #include "wh.cuh"
 #include "convert.h"
 #include "util.cuh"
+#include <iostream>
 
 namespace sr
 {
@@ -193,9 +194,11 @@ done: ;
 	void MVSKernel_(f64_3* r, f64_3* v, uint16_t* flags, f64_3* a, uint32_t* deathtime_index,
 		uint32_t n, uint32_t tbsize, uint32_t planet_n, const f64_3* h0_log, const f64_3* r_log, const float64_t* m, const float64_t* rh, float64_t dt, float64_t mu)
 	{
-		// max timeblock size: 384
-		__shared__ f64_3 h0_log_shared[384];
-		__shared__ f64_3 r_log_shared[1536];
+		// per 1 timestep: (1 + planet_n) vec3s of float64
+		// assume up to 16 planets, so 17 * 3 * 8 = 408 byte per timestep
+		// for 48kb block memory, we get 120 max timeblock size
+		__shared__ f64_3 h0_log_shared[120];
+		__shared__ f64_3 r_log_shared[1920];
 
 		for (int i = threadIdx.x; 
 				i < tbsize;
@@ -295,6 +298,7 @@ done: ;
 #else
 		cudaDeviceProp prop;
 		cudaGetDeviceProperties(&prop, 0);
+		// no dynamically allocated shared memory
 		uint32_t block_size, grid_size, shared_mem = 0;
 		if (pa.n_alive < static_cast<uint32_t>(1024 * prop.multiProcessorCount))
 		{
@@ -305,12 +309,24 @@ done: ;
 		{
 			block_size = 1024;
 		}
-		grid_size = static_cast<uint32_t>((pa.n_alive + block_size - 1) / block_size);
 
+		if (base.tbsize > 120 || pl.n_alive > 16)
+		{
+			throw std::string("Must have timeblock size <= 120 and number of planets <= 16");
+		}
+
+
+
+		grid_size = static_cast<uint32_t>((pa.n_alive + block_size - 1) / block_size);
 		MVSKernel_<<<grid_size, block_size, shared_mem, stream>>>
 			(pa.r.data().get(), pa.v.data().get(), pa.deathflags.data().get(), device_particle_a.data().get(), pa.deathtime_index.data().get(),
 			static_cast<uint32_t>(pa.n_alive), static_cast<uint32_t>(base.tbsize), static_cast<uint32_t>(pl.n_alive), device_h0_log(planet_data_id).data().get(), pl.r_log.data().get(), pl.m.data().get(),
 			device_planet_rh.data().get(), base.dt, pl.m[0]);
+		cudaError_t error = cudaGetLastError();
+		if (error != cudaSuccess)
+		{
+			std::cout << "Error in launching kernel: " << cudaGetErrorName(error) << " " << cudaGetErrorString(error) << std::endl;
+		}
 #endif
 	}
 }

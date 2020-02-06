@@ -226,6 +226,12 @@ namespace exec
 			if (cputimeout) *cputimeout = cputime;
 			if (gputimeout) *gputimeout = gputime;
 
+			cudaError_t error = cudaGetLastError();
+			if (error != cudaSuccess)
+			{
+				std::cout << "Error in finishing kernel: " << cudaGetErrorName(error) << " " << cudaGetErrorString(error) << std::endl;
+			}
+
 			// There's nothing to resync if all the particles on the device are dead!
 			// Although dd.particles.n_alive can be out of sync with dd.particles.deathflags before
 			// resync() is called, this is safe:
@@ -248,6 +254,7 @@ namespace exec
 		size_t prev_alive = particles.n_alive;
 
 		auto partition_it = thrust::make_zip_iterator(thrust::make_tuple(particles.begin(), integrator.device_begin()));
+		// partition the particles using the unflagged predicate: move flagged particles to the end
 		particles.n_alive = thrust::stable_partition(thrust::cuda::par.on(main_stream),
 				partition_it, partition_it + particles.n_alive, DeviceParticleUnflaggedPredicate()) - partition_it;
 		cudaStreamSynchronize(main_stream);
