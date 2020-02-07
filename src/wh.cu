@@ -298,17 +298,21 @@ done: ;
 #else
 		cudaDeviceProp prop;
 		cudaGetDeviceProperties(&prop, 0);
-		// no dynamically allocated shared memory
+		// shared_mem = dynamically allocated shared memory (we use static)
 		uint32_t block_size, grid_size, shared_mem = 0;
-		if (pa.n_alive < static_cast<uint32_t>(1024 * prop.multiProcessorCount))
-		{
-			block_size = static_cast<uint32_t>((pa.n_alive / prop.multiProcessorCount + 31) / 32 * 32);
-			if (block_size == 0) block_size = 32;
-		}
-		else
-		{
-			block_size = 1024;
-		}
+
+		uint32_t regsPerThread = 64;
+		uint32_t maxThreadsPerMultiprocessor = std::min(static_cast<uint32_t>(prop.maxThreadsPerMultiProcessor), static_cast<uint32_t>(prop.regsPerMultiprocessor / regsPerThread));
+		uint32_t maxThreadsPerBlock = std::min(static_cast<uint32_t>(prop.maxThreadsPerBlock), static_cast<uint32_t>(prop.regsPerBlock / regsPerThread));
+
+		uint32_t threads_per_mp = static_cast<uint32_t>((pa.n_alive + prop.multiProcessorCount - 1) / prop.multiProcessorCount);
+		uint32_t allowed_blocks = static_cast<uint32_t>((threads_per_mp + maxThreadsPerBlock - 1) / maxThreadsPerBlock);
+		uint32_t threads_per_block = static_cast<uint32_t>((threads_per_mp + allowed_blocks - 1) / allowed_blocks);
+
+		block_size = static_cast<uint32_t>((threads_per_block + prop.warpSize - 1) / prop.warpSize * prop.warpSize);
+		grid_size = static_cast<uint32_t>((pa.n_alive + block_size - 1) / block_size);
+
+		// std::cout << "block size: " << block_size << " grid size: " << grid_size << " thread count: " << block_size * grid_size << std::endl;
 
 		if (base.tbsize > 120 || pl.n_alive > 16)
 		{
@@ -317,7 +321,6 @@ done: ;
 
 
 
-		grid_size = static_cast<uint32_t>((pa.n_alive + block_size - 1) / block_size);
 		MVSKernel_<<<grid_size, block_size, shared_mem, stream>>>
 			(pa.r.data().get(), pa.v.data().get(), pa.deathflags.data().get(), device_particle_a.data().get(), pa.deathtime_index.data().get(),
 			static_cast<uint32_t>(pa.n_alive), static_cast<uint32_t>(base.tbsize), static_cast<uint32_t>(pl.n_alive), device_h0_log(planet_data_id).data().get(), pl.r_log.data().get(), pl.m.data().get(),
