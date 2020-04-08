@@ -2,6 +2,7 @@
 #include "../src/util.h"
 #include "../docopt/docopt.h"
 
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <string>

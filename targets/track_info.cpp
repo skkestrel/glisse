@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 
 		sr::data::TrackReaderOptions opt;
 		opt.take_all_particles = true;
-		opt.remove_planets = false;
+		opt.take_all_planets = true;
 		opt.silent = true;
 
 		double lasttime;
@@ -62,7 +62,7 @@ int main(int argc, char** argv)
 				}
 
 				opt.take_all_particles = false;
-				opt.remove_planets = true;
+				opt.take_all_planets = false;
 				lasttime = time;
 			});
 		std::cout << "The length is " << lasttime << std::endl;
