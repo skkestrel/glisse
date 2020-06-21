@@ -17,6 +17,8 @@ namespace wh
 		Dvf64_3 device_particle_a;
 		Dvf64 device_planet_rh;
 
+		uint32_t maxkep;
+
 		Dvf64_3 device_h0_log_0, device_h0_log_1;
 
 		using device_iterator = decltype(device_particle_a.begin());

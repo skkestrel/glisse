@@ -16,7 +16,6 @@ Log-Interval 128
 Status-Interval 1
 Resync-Interval {4}
 CPU-Thread-Count 1
-Enable-GPU {3}
 Output-Folder temp-data
 Limit-Particle-Count {1}
 Dump-Interval 25000

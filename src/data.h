@@ -189,14 +189,8 @@ namespace data
 		/** Default ctor. */
 		inline HostParticlePhaseSpace() { }
 
-		/** Ctor with size argument and cpu_only. cpu_only must be set to true when CPU block integration is required. */
-		inline HostParticlePhaseSpace(size_t siz, bool cpu_only) : base(siz), _deathflags(siz), _deathtime(siz), _cpu_only(cpu_only)
-		{ 
-			if (cpu_only)
-			{
-				_deathtime_index = Vu32(siz);
-			}
-		}
+		/** Ctor with size argument */
+		inline HostParticlePhaseSpace(size_t siz) : base(siz), _deathflags(siz), _deathtime(siz) { }
 
 		/** Execute stable partition on alive particles, i.e., `deathflags & 0x00FE = 0` */
 		std::unique_ptr<std::vector<size_t>> stable_partition_alive(size_t begin, size_t length);
@@ -228,7 +222,6 @@ namespace data
 		Vf32 _deathtime;
 
 		Vu32 _deathtime_index;
-		bool _cpu_only;
 	};
 
 	struct HostPlanetPhaseSpace
@@ -350,6 +343,7 @@ namespace data
 	/** Contains all the integration options. */
 	struct Configuration
 	{
+		uint32_t max_kep;
 		double t_0, t_f, dt, big_g;
 		uint32_t num_thread;
 		uint32_t tbsize, print_every, dump_every, track_every, energy_every, max_particle;
@@ -359,7 +353,6 @@ namespace data
 
 		uint32_t resync_every;
 
-		bool use_gpu;
 		bool write_bary_track;
 
 		double cull_radius;

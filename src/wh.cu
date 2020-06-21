@@ -10,7 +10,6 @@ namespace wh
 {
 	using namespace sr::data;
 
-	const size_t MAXKEP = 5;
 	const float64_t TOLKEP = 1E-14;
 
 	struct MVSKernel
@@ -22,10 +21,11 @@ namespace wh
 		const uint32_t planet_n;
 		const uint32_t tbsize;
 		const float64_t dt;
+		const uint32_t maxkep;
 
 		const float64_t* planet_rh;
 
-		MVSKernel(const DevicePlanetPhaseSpace& planets, const Dvf64_3& h0_log, const Dvf64& _planet_rh, uint32_t _tbsize, float64_t _dt) :
+		MVSKernel(const DevicePlanetPhaseSpace& planets, const Dvf64_3& h0_log, const Dvf64& _planet_rh, uint32_t _tbsize, float64_t _dt, uint32_t _maxkep) :
 			planet_m(planets.m.data().get()),
 			mu(planets.m[0]),
 			planet_h0_log(h0_log.data().get()),
@@ -33,18 +33,19 @@ namespace wh
 			planet_n(static_cast<uint32_t>(planets.n_alive)),
 			tbsize(_tbsize),
 			dt(_dt),
-			planet_rh(_planet_rh.data().get())
+			planet_rh(_planet_rh.data().get()),
+			maxkep(_maxkep)
 		{ }
 
 		__host__ __device__
-		static void kepeq(double dM, double ecosEo, double esinEo, double* dE, double* sindE, double* cosdE, uint16_t& flags)
+		static void kepeq(double dM, double ecosEo, double esinEo, double* dE, double* sindE, double* cosdE, uint16_t& flags, uint32_t maxkep)
 		{
 			double f, fp, delta;
 
 			*sindE = sin(*dE);
 			*cosdE = cos(*dE);
 
-			for (size_t i = 0; i < MAXKEP; i++)
+			for (size_t i = 0; i < maxkep; i++)
 			{
 				f = *dE - ecosEo * (*sindE) + esinEo * (1. - *cosdE) - dM;
 				fp = 1. - ecosEo * (*cosdE) + esinEo * (*sindE);
@@ -67,7 +68,7 @@ done: ;
 		}
 
 		__host__ __device__
-		static void drift(f64_3& r, f64_3& v, uint16_t& flags, double dt, double mu)
+		static void drift(f64_3& r, f64_3& v, uint16_t& flags, double dt, double mu, uint32_t maxkep)
 		{
 			float64_t dist = sqrt(r.lensq());
 			float64_t vdotr = v.x * r.x + v.y * r.y + v.z * r.z;
@@ -91,7 +92,7 @@ done: ;
 			// call kepler equation solver with initial guess in dE already
 			float64_t dE = dM - esinEo + esinEo * cos(dM) + ecosEo * sin(dM);
 			float64_t sindE, cosdE;
-			kepeq(dM, ecosEo, esinEo, &dE, &sindE, &cosdE, flags);
+			kepeq(dM, ecosEo, esinEo, &dE, &sindE, &cosdE, flags, maxkep);
 
 			float64_t fp = 1.0 - ecosEo * cosdE + esinEo * sindE;
 			float64_t f = 1.0 + a * (cosdE - 1.0) / dist;
@@ -106,7 +107,7 @@ done: ;
 
 		__host__ __device__
 		static void step_forward(f64_3& r, f64_3& v, uint16_t& flags, f64_3& a, uint32_t& deathtime_index, uint32_t _tbsize,
-				uint32_t planet_n, const f64_3* h0_log, const f64_3* r_log, const float64_t* m, const float64_t* rh, float64_t dt, float64_t mu)
+				uint32_t planet_n, const f64_3* h0_log, const f64_3* r_log, const float64_t* m, const float64_t* rh, float64_t dt, float64_t mu, uint32_t maxkep)
 		{
 			deathtime_index = 0;
 
@@ -117,7 +118,7 @@ done: ;
 					// kick
 					v = v + a * (dt / 2);
 
-					drift(r, v, flags, dt, mu);
+					drift(r, v, flags, dt, mu, maxkep);
 
 					a = h0_log[step];
 
@@ -179,7 +180,7 @@ done: ;
 			f64_3 a = thrust::get<1>(args);
 
 			step_forward(r, v, flags, a, deathtime_index, _tbsize,
-				planet_n, h0_log, r_log, m, rh, _dt, _mu);
+				planet_n, h0_log, r_log, m, rh, _dt, _mu, this->maxkep);
 
 			thrust::get<0>(thrust::get<0>(args)) = r;
 			thrust::get<1>(thrust::get<0>(args)) = v;
@@ -192,7 +193,7 @@ done: ;
 
 	__global__
 	void MVSKernel_(f64_3* r, f64_3* v, uint16_t* flags, f64_3* a, uint32_t* deathtime_index,
-		uint32_t n, uint32_t tbsize, uint32_t planet_n, const f64_3* h0_log, const f64_3* r_log, const float64_t* m, const float64_t* rh, float64_t dt, float64_t mu)
+		uint32_t n, uint32_t tbsize, uint32_t planet_n, const f64_3* h0_log, const f64_3* r_log, const float64_t* m, const float64_t* rh, float64_t dt, float64_t mu, uint32_t maxkep)
 	{
 		// per 1 timestep: (1 + planet_n) vec3s of float64
 		// assume up to 16 planets, so 17 * 3 * 8 = 408 byte per timestep
@@ -227,7 +228,7 @@ done: ;
 			uint32_t deathtime_indexi;
 		
 			MVSKernel::step_forward(ri, vi, flagsi, ai, deathtime_indexi, tbsize,
-					planet_n, h0_log_shared, r_log_shared, m, rh, dt, mu);
+					planet_n, h0_log_shared, r_log_shared, m, rh, dt, mu, maxkep);
 
 			r[i] = ri;
 			v[i] = vi;
@@ -250,6 +251,7 @@ done: ;
 		device_planet_rh = Dvf64(pl.n());
 
 		memcpy_htd(device_planet_rh, base.planet_rh, 0);
+		maxkep = config.max_kep;
 		cudaStreamSynchronize(0);
 	}
 
@@ -294,7 +296,7 @@ done: ;
 	{
 #ifndef CUDA_USE_SHARED_MEM_CACHE
 		auto it = thrust::make_zip_iterator(thrust::make_tuple(pa.begin(), device_begin()));
-		thrust::for_each(thrust::cuda::par.on(stream), it, it + pa.n_alive, MVSKernel(pl, device_h0_log(planet_data_id), device_planet_rh, static_cast<uint32_t>(base.tbsize), base.dt));
+		thrust::for_each(thrust::cuda::par.on(stream), it, it + pa.n_alive, MVSKernel(pl, device_h0_log(planet_data_id), device_planet_rh, static_cast<uint32_t>(base.tbsize), base.dt, maxkep));
 #else
 		cudaDeviceProp prop;
 		cudaGetDeviceProperties(&prop, 0);
@@ -324,7 +326,7 @@ done: ;
 		MVSKernel_<<<grid_size, block_size, shared_mem, stream>>>
 			(pa.r.data().get(), pa.v.data().get(), pa.deathflags.data().get(), device_particle_a.data().get(), pa.deathtime_index.data().get(),
 			static_cast<uint32_t>(pa.n_alive), static_cast<uint32_t>(base.tbsize), static_cast<uint32_t>(pl.n_alive), device_h0_log(planet_data_id).data().get(), pl.r_log.data().get(), pl.m.data().get(),
-			device_planet_rh.data().get(), base.dt, pl.m[0]);
+			device_planet_rh.data().get(), base.dt, pl.m[0], maxkep);
 		cudaError_t error = cudaGetLastError();
 		if (error != cudaSuccess)
 		{

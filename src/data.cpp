@@ -91,14 +91,8 @@ namespace data
 	void HostParticlePhaseSpace::filter(const std::vector<size_t>& filter, HostParticlePhaseSpace& out) const
 	{
 		base.filter(filter, out.base);
-		out._cpu_only = _cpu_only;
 		out._deathflags = std::vector<uint16_t>(out.base.n);
 		out._deathtime = std::vector<float>(out.base.n);
-
-		if (_cpu_only)
-		{
-			out._deathtime_index = std::vector<uint32_t>(out.base.n);
-		}
 
 		size_t index = 0;
 
@@ -106,11 +100,6 @@ namespace data
 		{
 			out._deathflags[index] = _deathflags[i];
 			out._deathtime[index] = _deathtime[i];
-
-			if (_cpu_only)
-			{
-				out._deathtime_index[index] = _deathtime_index[i];
-			}
 
 			index++;
 		}
@@ -160,6 +149,7 @@ namespace data
 	Configuration::Configuration()
 	{
 		num_thread = 4;
+		max_kep = 10;
 		t_0 = 0;
 		t_f = 365e4;
 		dt = 122;
@@ -176,8 +166,6 @@ namespace data
 		energy_every = 1;
 		track_every = 0;
 		split_track_file = 0;
-
-		use_gpu = true;
 
 		dump_every = 1000;
 		max_particle = static_cast<uint32_t>(-1);
@@ -232,12 +220,12 @@ namespace data
 					out->t_f = std::stod(second);
 				else if (first == "Time-Block-Size")
 					out->tbsize = std::stou(second);
+				else if (first == "Max-Kepler-Iterations")
+					out->max_kep = std::stou(second);
 				else if (first == "Big-G")
 					out->big_g = std::stod(second);
 				else if (first == "Cull-Radius")
 					out->cull_radius = std::stod(second);
-				else if (first == "Enable-GPU")
-					out->use_gpu = std::stoi(second) != 0;
 				else if (first == "CPU-Thread-Count")
 					out->num_thread = std::stou(second);
 				else if (first == "Limit-Particle-Count")
@@ -281,7 +269,7 @@ namespace data
 				else
 					throw std::invalid_argument("bad");
 			}
-			catch (std::invalid_argument)
+			catch (std::invalid_argument&)
 			{
 				std::ostringstream ss;
 				ss << "Could not parse line " << linenum << ": " << line;
@@ -325,7 +313,7 @@ namespace data
 		outstream << "Final-Time " << out.t_f << std::endl;
 		outstream << "Time-Block-Size " << out.tbsize << std::endl;
 		outstream << "Cull-Radius " << out.cull_radius << std::endl;
-		outstream << "Enable-GPU " << out.use_gpu << std::endl;
+		outstream << "Max-Kepler-Iterations " << out.max_kep << std::endl;
 		outstream << "CPU-Thread-Count " << out.num_thread << std::endl;
 		outstream << "Limit-Particle-Count " << out.max_particle << std::endl;
 		outstream << "Log-Interval " << out.print_every << std::endl;
@@ -375,7 +363,7 @@ namespace data
 		icsin >> npart;
 		npart = std::min(npart, static_cast<size_t>(config.max_particle));
 
-		pa = HostParticlePhaseSpace(npart, !config.use_gpu);
+		pa = HostParticlePhaseSpace(npart);
 
 		for (size_t i = 0; i < npart; i++)
 		{
@@ -437,7 +425,7 @@ namespace data
 		size_t npart;
 		ss >> npart;
 		npart = std::min(npart, static_cast<size_t>(config.max_particle));
-		pa = HostParticlePhaseSpace(npart, !config.use_gpu);
+		pa = HostParticlePhaseSpace(npart);
 
 		for (size_t i = 0; i < npart; i++)
 		{
@@ -478,7 +466,7 @@ namespace data
 
 		read_binary<uint64_t>(in, templl);
 		size_t npart = std::min(static_cast<size_t>(templl), static_cast<size_t>(config.max_particle));
-		pa = HostParticlePhaseSpace(npart, !config.use_gpu);
+		pa = HostParticlePhaseSpace(npart);
 
 		for (size_t i = 0; i < pa.n(); i++)
 		{

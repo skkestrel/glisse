@@ -17,7 +17,6 @@ Log-Interval 128
 Status-Interval 1
 Resync-Interval {4}
 CPU-Thread-Count 1
-Enable-GPU {3}
 Output-Folder temp-data
 Limit-Particle-Count {1}
 Dump-Interval 25000
@@ -27,7 +26,7 @@ Read-Binary-Input 0
 """
 
 mode = int(sys.argv[1])
-use_gpu = 0 if len(sys.argv) > 2 and sys.argv[2] == "cpu" else 1
+use_gpu = 1
 
 tbsizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 26, 28, 30, 32, 64, 128, 256, 512, 1024, 2048, 4096]
 

@@ -45,12 +45,6 @@ namespace exec
 
 	void Executor::init()
 	{
-		if (!config.use_gpu)
-		{
-			output << "Executable was compiled with CUDA but USE_GPU was disabled!" << std::endl;
-			throw std::exception();
-		}
-
 		to_helio(hd);
 
 		integrator = sr::wh::WHCudaIntegrator(hd.planets, hd.particles, config);

@@ -25,7 +25,6 @@ days and au, the solar mass should be set to 4 * pi^2 / (365.25)^2 = 2.959 x 10^
 | Final-Time | The time to stop the integration. | |
 | Time-Block-Size | The timeblock size; the planetary chunk size. The number of timesteps that the GPU will advance in one kernel launch. | 1024 |
 | Cull-Radius | Particles are deactivated if they come within this radius of any planet, in natural units. | 0.5 |
-| Enable-GPU | Whether to use the GPU in the integration. The program will not run if Enable-GPU is set to a value that is not supported by the compiled executable. | 1 |
 | CPU-Thread-Count | The number of threads to use in CPU-only mode. | 4 |
 | Log-Interval | The integrator will print the current progress every Log-Interval number of timeblocks. 0 to disable. | 10 |
 | Status-Interval | The integrator will write the integration status to the file named `status` in the project output directory every Status-Interval number of timeblocks. 0 to disable. See below. | 1 |
