@@ -7,3 +7,5 @@ script/__pycache__
 prof
 bin
 obj
+example
+.vscode

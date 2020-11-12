@@ -353,7 +353,7 @@ namespace data
 
 		uint32_t resync_every;
 
-		bool write_bary_track;
+		bool write_bary_track, keep_all_dumps;
 
 		double cull_radius;
 

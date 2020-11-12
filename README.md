@@ -1,15 +1,15 @@
-GLISSE (GPU Long-term Integrator for Solar System Evolution)
+# GLISSE (GPU Long-term Integrator for Solar System Evolution)
 
 This package provides an integrator designed to simulate large numbers of massive particles over large timescales.
 This code works best with systems with small numbers of massive bodies (e.g. in solar systems with <10 planets),
 and currently does not support close encounter handling between planet-planet or planet-particle interactions.
 
-Compilation
+## Compilation
 
 Simply type make in the project root directory to compile the integrator, or make cpu to compile a CPU-only version.
 The makefile may need to be edited to target your specfic GPU architecture. The current makefile has been tested with the 1080ti and the Tesla K20.
 
-Usage
+## Usage
 
 There are two required files by GLISSE: one, a configuration file; and two, an initial state file.
 The configuration file should contain one entry per line. Lines beginning with a pound sign (#) are ignored.
@@ -33,10 +33,11 @@ days and au, the solar mass should be set to 4 * pi^2 / (365.25)^2 = 2.959 x 10^
 | Write-Barycentric-Track | The integrator will write barycentric instead of heliocentric orbital elements to the particle tracks if enabled. | 0 |
 | Split-Track-File | If zero, the integrator will write particle tracks into a single file named `track' in the output directory. If nonzero, the integrator will write particle tracks to files with a maximum size of Split-Track-File in bytes, named sequentially in a folder named `tracks' in the output directory. | 0 |
 | Dump-Interval | The integrator will dump particle and planet states to a folder named `dumps' in the output directory every Dump-Interval number of timeblocks. 0 to disable. | 1000 |
-| Write-Binary-Output | Whether to write the output state file in binary format. | 0 | 
-| Read-Binary-Input | Whether to write the input state file in binary format. | 0 | 
+| Keep-All-Dumps | Whether to keep all the dump files. If set to 0, new dump file will cover the old one. | 0 |
+| Write-Binary-Output | Whether to write the output state file in binary format. | 0 |
+| Read-Binary-Input | Whether to write the input state file in binary format. | 0 |
 | Input-File | The absolute path of the input state file to read. | |
-| Output-File | The absolute path of the output folder. | |
+| Output-Folder | The absolute path of the output folder. | |
 | Read-Input-Momenta | Whether to interpret momenta instead of velocities in the input state file. | 0 |
 | Write-Output-Momenta | Whether to write momenta instead of velocities in the output state file. | 0 |
 
@@ -54,16 +55,16 @@ For each particle: 3 lines
 	vx vy vz
 	id deathflags deathtime
 
-Particle tracks
+### Particle tracks
 The particle track is always in binary format and contains a history of particle and planet orbital elements in single-precision.
 TODO
 
-Utility executables
+### Utility executables
 bin/make-state Generate an initial state file from a template planet data file and uniformly sampling orbital elements for particles
 bin/convert-state Convert states from different formats, or between different coordinate systems.
 For example: bin/convert-state read state.in to-bary write state.bary.in
 bin/filter-state Find particles in a state file that satisfy certain criteria, for example, to find all particles with semimajor axis greater than 20 au
 bin/track-info Display information about a particle track
 
-Utility scripts
+### Utility scripts
 scripts/plot_history.py provides utilities to plot data form a particle track

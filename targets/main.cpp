@@ -13,7 +13,6 @@ GLISSE Integrator
 #include <cmath>
 #include <iomanip>
 
-
 #include <execinfo.h>
 #include <csignal>
 
@@ -42,7 +41,7 @@ void term(int signum)
 	}
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
 	std::ios_base::sync_with_stdio(false);
 
@@ -56,13 +55,14 @@ int main(int argc, char** argv)
 		std::cerr << "sizeof float is not 4 - this code will likely not work!" << std::endl;
 	}
 
-	std::map<std::string, docopt::value> args = docopt::docopt(USAGE, { argv + 1, argv + argc }, true, "sr");
+	std::map<std::string, docopt::value> args = docopt::docopt(USAGE, {argv + 1, argv + argc}, true, "sr");
 
 	std::string configin = "config.in";
-	if (args["<config>"]) configin = args["<config>"].asString();
-	
+	if (args["<config>"])
+		configin = args["<config>"].asString();
+
 	std::cout << "Reading from configuration file " << configin << std::endl;
-	
+
 	std::ifstream configfile(configin);
 
 	sr::data::Configuration config_mut;
@@ -71,15 +71,14 @@ int main(int argc, char** argv)
 	{
 		read_configuration(configfile, &config_mut);
 	}
-	catch (std::exception& e)
+	catch (std::exception &e)
 	{
 		std::cerr << "Could not read configuration." << std::endl;
 		std::cerr << e.what() << std::endl;
 		return -1;
 	}
 
-	const sr::data::Configuration& config = config_mut;
-
+	const sr::data::Configuration &config = config_mut;
 
 	sr::util::make_dir(config.outfolder);
 
@@ -87,11 +86,12 @@ int main(int argc, char** argv)
 	{
 		std::cout << "Output folder is not empty! Do you want to continue?" << std::endl;
 		std::cout << "Type \"Yes\" exactly as shown to continue: ";
-	
+
 		std::string s;
 		std::getline(std::cin, s);
 
-		if (s != "Yes") return -1;
+		if (s != "Yes")
+			return -1;
 	}
 
 	{
@@ -115,7 +115,8 @@ int main(int argc, char** argv)
 
 	ex.t = config.t_0;
 
-	if (load_data(hd.planets, hd.particles, config)) return -1;
+	if (load_data(hd.planets, hd.particles, config))
+		return -1;
 	save_data(hd.planets.base, hd.particles, config, sr::util::joinpath(config.outfolder, "state.in"));
 
 	std::time_t t = std::time(nullptr);
@@ -144,45 +145,43 @@ int main(int argc, char** argv)
 		while (ex.t < config.t_f)
 		{
 			double cputimeout, gputimeout;
-		       	ex.loop(&cputimeout, &gputimeout);
+			ex.loop(&cputimeout, &gputimeout);
 
 			double timediff = gputimeout - cputimeout;
 
 			counter++;
 
-			ex.add_job([&timelog, &tout, &ex, &config, counter, timediff]()
+			ex.add_job([&timelog, &tout, &ex, &config, counter, timediff]() {
+				bool output_energy = config.energy_every != 0 && (counter % config.energy_every == 0);
+				bool log_out = config.print_every != 0 && (counter % config.print_every == 0);
+
+				if (!log_out && !output_energy)
+					return;
+
+				double e_;
+				f64_3 l_;
+				sr::wh::calculate_planet_metrics(ex.hd.planets, &e_, &l_);
+				double elapsed = ex.time();
+				double total = elapsed * (config.t_f - config.t_0) / (ex.t - config.t_0);
+
+				if (output_energy)
 				{
-					bool output_energy = config.energy_every != 0 && (counter % config.energy_every == 0);
-					bool log_out = config.print_every != 0 && (counter % config.print_every == 0);
+					timelog << std::setprecision(13) << "time " << elapsed << " " << ex.t << " " << ex.hd.particles.n_alive() << std::endl;
+					timelog << "ep " << e_ << std::endl;
+					timelog << "lp " << l_ << std::endl;
+				}
 
+				if (log_out)
+				{
+					tout << std::setprecision(4);
+					tout << "t=" << ex.t << " (" << elapsed / total * 100 << "% " << elapsed << "m elapsed, "
+						 << total << "m total " << total - elapsed << "m remain)" << std::endl;
+					tout << "Error = " << (e_ - ex.e_0) / ex.e_0 * 100 << ", " << ex.hd.particles.n_alive() << " particles remaining" << std::endl;
 
-					if (!log_out && !output_energy) return;
+					tout << "GPU took " << std::setprecision(4) << timediff << " ms longer than CPU" << std::endl;
+				}
+			});
 
-					double e_;
-					f64_3 l_;
-					sr::wh::calculate_planet_metrics(ex.hd.planets, &e_, &l_);
-					double elapsed = ex.time();
-					double total = elapsed * (config.t_f - config.t_0) / (ex.t - config.t_0);
-
-					if (output_energy)
-					{
-						timelog << std::setprecision(13) << "time " << elapsed << " " << ex.t << " " << ex.hd.particles.n_alive() << std::endl;
-						timelog << "ep " << e_ << std::endl;
-						timelog << "lp " << l_ << std::endl;
-					}
-
-					if (log_out)
-					{
-						tout << std::setprecision(4);
-						tout << "t=" << ex.t << " (" << elapsed / total * 100 << "% " << elapsed << "m elapsed, "
-							<< total << "m total " << total - elapsed << "m remain)" << std::endl;
-						tout << "Error = " << (e_ - ex.e_0) / ex.e_0 * 100 << ", " <<
-							ex.hd.particles.n_alive() << " particles remaining" << std::endl;
-
-						tout << "GPU took " << std::setprecision(4) << timediff << " ms longer than CPU" << std::endl;
-					}
-				});
-			
 			bool dump = config.dump_every != 0 && counter % config.dump_every == 0;
 			bool track = config.track_every != 0 && counter % config.track_every == 0;
 
@@ -193,26 +192,29 @@ int main(int argc, char** argv)
 				if (dump)
 				{
 					sr::data::Configuration out_config = config.output_config();
-					out_config.t_f = config.t_f - config.t_0 + ex.t;
+
+					// [Probe] The output final time should remain constant I think.
+					out_config.t_f = config.t_f;
 					out_config.t_0 = ex.t;
-					out_config.writesplit = false;
-					out_config.writebinary = true;
 
-					ex.add_job([&tout, &ex, &out_config, &config, &dump_num]()
-						{
-							tout << "Dumping to disk. t = " << ex.t << std::endl;
-							std::ostringstream ss;
-							ss << "dumps/config." << dump_num << ".out";
+					// [Probe] I don't understand the point of doing that.
+					// out_config.writesplit = false;
+					// out_config.writebinary = true;
 
-							std::ofstream configout(sr::util::joinpath(config.outfolder, ss.str()));
-							write_configuration(configout, out_config);
+					ex.add_job([&tout, &ex, &out_config, &config, &dump_num]() {
+						tout << "Dumping to disk. t = " << ex.t << std::endl;
+						std::ostringstream ss_config, ss_state;
+						ss_config << "dumps/config." << dump_num << ".out";
 
-							ss = std::ostringstream();
-							ss << "dumps/state." << dump_num << ".out";
-							save_data(ex.hd.planets_snapshot, ex.hd.particles, config, sr::util::joinpath(config.outfolder, ss.str()));
+						std::ofstream configout(sr::util::joinpath(config.outfolder, ss_config.str()));
+						write_configuration(configout, out_config);
 
+						ss_state << "dumps/state." << dump_num << ".out";
+						save_data(ex.hd.planets_snapshot, ex.hd.particles, config, sr::util::joinpath(config.outfolder, ss_state.str()));
+
+						if (config.keep_all_dumps)
 							dump_num++;
-						});
+					});
 				}
 
 				if (track)
@@ -224,12 +226,11 @@ int main(int argc, char** argv)
 						trackout = std::ofstream(sr::util::joinpath(config.outfolder, ss.str()), std::ios_base::binary);
 					}
 
-					ex.add_job([&trackout, &ex, &config]()
-						{
-							sr::data::HostParticleSnapshot snapshot_copy = ex.hd.particles.base;
-							snapshot_copy.sort_by_id(0, snapshot_copy.n_alive);
-							sr::data::save_binary_track(trackout, ex.hd.planets_snapshot, snapshot_copy, ex.t, true, config.write_bary_track);
-						});
+					ex.add_job([&trackout, &ex, &config]() {
+						sr::data::HostParticleSnapshot snapshot_copy = ex.hd.particles.base;
+						snapshot_copy.sort_by_id(0, snapshot_copy.n_alive);
+						sr::data::save_binary_track(trackout, ex.hd.planets_snapshot, snapshot_copy, ex.t, true, config.write_bary_track);
+					});
 				}
 			}
 
@@ -249,7 +250,8 @@ int main(int argc, char** argv)
 						tokens.push_back(token);
 					}
 
-					if (tokens.size() < 1) continue;
+					if (tokens.size() < 1)
+						continue;
 
 					if (tokens[0] == "quit")
 					{
@@ -287,12 +289,11 @@ int main(int argc, char** argv)
 				}
 				// TODO add option to edit configuration
 			}
-
 		}
 	}
-	catch (const std::exception& e)
+	catch (const std::exception &e)
 	{
-		void* array[50];
+		void *array[50];
 		size_t size = backtrace(array, 50);
 		backtrace_symbols_fd(array, static_cast<int>(size), 1);
 
@@ -309,7 +310,7 @@ int main(int argc, char** argv)
 	save_data(hd.planets_snapshot, hd.particles, config, sr::util::joinpath(config.outfolder, "state.out"));
 
 	sr::data::Configuration out_config = config.output_config();
-	out_config.t_f = config.t_f - config.t_0 + ex.t;
+	out_config.t_f = config.t_f;
 	out_config.t_0 = ex.t;
 
 	std::ofstream configout(sr::util::joinpath(config.outfolder, "config.out"));
