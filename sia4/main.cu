@@ -400,7 +400,7 @@ void to_elements(double mu, f64_3 r, f64_3 v, int* esign, double* a, double* e, 
 
 
 
-bool load_data(HostData& hd, std::string plin, std::string icsin, size_t max_particle, bool readmomenta)
+bool load_data(HostData& hd, std::string plin, std::string icsin, size_t max_particle)
 {
 	std::ifstream plinfile(plin), icsinfile(icsin);
 
@@ -418,13 +418,6 @@ bool load_data(HostData& hd, std::string plin, std::string icsin, size_t max_par
 		plinfile >> hd.m_planet[i];
 		plinfile >> hd.r_planet[i].x >> hd.r_planet[i].y >> hd.r_planet[i].z;
 		plinfile >> hd.v_planet[i].x >> hd.v_planet[i].y >> hd.v_planet[i].z;
-
-		if (readmomenta)
-		{
-			hd.v_planet[i].x /= hd.m_planet[i];
-			hd.v_planet[i].y /= hd.m_planet[i];
-			hd.v_planet[i].z /= hd.m_planet[i];
-		}
 	}
 
 	icsinfile >> hd.n_part;

@@ -25,7 +25,6 @@ days and au, the solar mass should be set to 4 * pi^2 / (365.25)^2 = 2.959 x 10^
 | Final-Time | The time to stop the integration. | |
 | Time-Block-Size | The timeblock size; the planetary chunk size. The number of timesteps that the GPU will advance in one kernel launch. | 1024 |
 | Cull-Radius | Particles are deactivated if they come within this radius of any planet, in natural units. BG: ALTER TO A MULTIPLE OF PLANETARY HILL SPHERES; COMPUTE ON CPU AT START AND PASS IN.| 0.5 | 
-| CPU-Thread-Count | The number of threads to use in CPU-only mode. | 4 |
 | Log-Interval | The integrator will print the current progress every Log-Interval number of timeblocks. 0 to disable. | 10 |
 | Status-Interval | The integrator will write the integration status to the file named `status` in the project output directory every Status-Interval number of timeblocks. 0 to disable. See below. | 1 |
 | Track-Interval | The integrator will write orbital elements to the integration track every Track-Interval number of timeblocks. See below. 0 to disable. | 0 |
@@ -38,8 +37,6 @@ days and au, the solar mass should be set to 4 * pi^2 / (365.25)^2 = 2.959 x 10^
 | Read-Binary-Input | Whether to write the input state file in binary format. | 0 |
 | Input-File | The absolute path of the input state file to read. | |
 | Output-Folder | The absolute path of the output folder. | |
-| Read-Input-Momenta | Whether to interpret momenta instead of velocities in the input state file. | 0 |
-| Write-Output-Momenta | Whether to write momenta instead of velocities in the output state file. | 0 |
 
 File formats
 Input and output states

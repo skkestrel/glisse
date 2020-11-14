@@ -145,40 +145,32 @@ namespace sr
 
 		Configuration::Configuration()
 		{
-			num_thread = 4;
-			max_kep = 10;
+			hybridin = "";
 			t_0 = 0;
-			t_f = 365e4;
 			dt = 122;
+			t_f = 365e4;
 			tbsize = 1024;
-			write_bary_track = false;
-			keep_all_dumps = false;
-			wh_ce_n1 = 8;
-			wh_ce_n2 = 4;
-			wh_ce_r1 = 1;
-			wh_ce_r2 = 3.5;
-			cull_radius = 0.5;
+			outfolder = "output/";
 
-			resync_every = 1;
 			print_every = 10;
 			energy_every = 1;
 			track_every = 0;
-			split_track_file = 0;
-
+			resync_every = 1;
 			dump_every = 1000;
-			max_particle = static_cast<uint32_t>(-1);
-			big_g = 1;
+			keep_all_dumps = false;
+			write_bary_track = false;
+			split_track_file = 0;
+			writesplit = false;
+			writebinary = false;
+			readsplit = false;
+			readbinary = false;
 			icsin = "";
 			plin = "";
-			hybridin = "";
-			hybridout = "state.out";
-			readsplit = 0;
-			writesplit = 0;
-			writebinary = 0;
-			readbinary = 0;
-			outfolder = "output/";
-			readmomenta = false;
-			writemomenta = false;
+
+			max_kep = 10;
+			big_g = 1;
+			cull_radius = 0.5;
+			max_particle = static_cast<uint32_t>(-1);
 		}
 
 		Configuration Configuration::output_config() const
@@ -212,7 +204,9 @@ namespace sr
 
 				try
 				{
-					if (first == "Initial-Time")
+					if (first == "Input-File")
+						out->hybridin = second;
+					else if (first == "Initial-Time")
 						out->t_0 = std::stod(second);
 					else if (first == "Time-Step")
 						out->dt = std::stod(second);
@@ -220,52 +214,44 @@ namespace sr
 						out->t_f = std::stod(second);
 					else if (first == "Time-Block-Size")
 						out->tbsize = std::stou(second);
+					else if (first == "Output-Folder")
+						out->outfolder = second;
+					else if (first == "Log-Interval")
+						out->print_every = std::stou(second);
+					else if (first == "Status-Interval")
+						out->energy_every = std::stou(second);
+					else if (first == "Track-Interval")
+						out->track_every = std::stou(second);
+					else if (first == "Resync-Interval")
+						out->resync_every = std::stou(second);
+					else if (first == "Dump-Interval")
+						out->dump_every = std::stou(second);
+					else if (first == "Keep-All-Dumps")
+						out->keep_all_dumps = std::stoi(second) != 0;
+					else if (first == "Write-Barycentric-Track")
+						out->write_bary_track = std::stoi(second) != 0;
+					else if (first == "Split-Track-File")
+						out->split_track_file = std::stou(second);
+					else if (first == "Write-Split-Output")
+						out->writesplit = std::stoi(second) != 0;
+					else if (first == "Write-Binary-Output")
+						out->writebinary = std::stoi(second) != 0;
+					else if (first == "Read-Split-Input")
+						out->readsplit = std::stoi(second) != 0;
+					else if (first == "Read-Binary-Input")
+						out->readbinary = std::stoi(second) != 0;
+					else if (first == "Particle-Input-File")
+						out->icsin = second;
+					else if (first == "Planet-Input-File")
+						out->plin = second;
 					else if (first == "Max-Kepler-Iterations")
 						out->max_kep = std::stou(second);
 					else if (first == "Big-G")
 						out->big_g = std::stod(second);
 					else if (first == "Cull-Radius")
 						out->cull_radius = std::stod(second);
-					else if (first == "CPU-Thread-Count")
-						out->num_thread = std::stou(second);
 					else if (first == "Limit-Particle-Count")
 						out->max_particle = std::stou(second);
-					else if (first == "Log-Interval")
-						out->print_every = std::stou(second);
-					else if (first == "Resync-Interval")
-						out->resync_every = std::stou(second);
-					else if (first == "Status-Interval")
-						out->energy_every = std::stou(second);
-					else if (first == "Track-Interval")
-						out->track_every = std::stou(second);
-					else if (first == "Write-Barycentric-Track")
-						out->write_bary_track = std::stoi(second) != 0;
-					else if (first == "Split-Track-File")
-						out->split_track_file = std::stou(second);
-					else if (first == "Dump-Interval")
-						out->dump_every = std::stou(second);
-					else if (first == "Keep-All-Dumps")
-						out->keep_all_dumps = std::stoi(second) != 0;
-					else if (first == "Write-Split-Output")
-						out->writesplit = std::stoi(second) != 0;
-					else if (first == "Read-Split-Input")
-						out->readsplit = std::stoi(second) != 0;
-					else if (first == "Write-Binary-Output")
-						out->writebinary = std::stoi(second) != 0;
-					else if (first == "Read-Binary-Input")
-						out->readbinary = std::stoi(second) != 0;
-					else if (first == "Input-File")
-						out->hybridin = second;
-					else if (first == "Output-Folder")
-						out->outfolder = second;
-					else if (first == "Particle-Input-File")
-						out->icsin = second;
-					else if (first == "Planet-Input-File")
-						out->plin = second;
-					else if (first == "Read-Input-Momenta")
-						out->readmomenta = std::stoi(second) != 0;
-					else if (first == "Write-Output-Momenta")
-						out->writemomenta = std::stoi(second) != 0;
 					else
 						throw std::invalid_argument("bad");
 				}
@@ -303,32 +289,30 @@ namespace sr
 		void write_configuration(std::ostream &outstream, const Configuration &out)
 		{
 			outstream << std::setprecision(17);
+			if(out.hybridin != "") outstream << "Input-File " << out.hybridin << std::endl;
 			outstream << "Initial-Time " << out.t_0 << std::endl;
 			outstream << "Time-Step " << out.dt << std::endl;
 			outstream << "Final-Time " << out.t_f << std::endl;
 			outstream << "Time-Block-Size " << out.tbsize << std::endl;
-			outstream << "Cull-Radius " << out.cull_radius << std::endl;
-			outstream << "Max-Kepler-Iterations " << out.max_kep << std::endl;
-			outstream << "CPU-Thread-Count " << out.num_thread << std::endl;
-			outstream << "Limit-Particle-Count " << out.max_particle << std::endl;
+			outstream << "Output-Folder " << out.outfolder << std::endl;
 			outstream << "Log-Interval " << out.print_every << std::endl;
 			outstream << "Status-Interval " << out.energy_every << std::endl;
 			outstream << "Track-Interval " << out.track_every << std::endl;
 			outstream << "Resync-Interval " << out.resync_every << std::endl;
-			outstream << "Write-Barycentric-Track " << out.write_bary_track << std::endl;
-			outstream << "Split-Track-File " << out.split_track_file << std::endl;
 			outstream << "Dump-Interval " << out.dump_every << std::endl;
 			outstream << "Keep-All-Dumps " << out.keep_all_dumps << std::endl;
+			outstream << "Write-Barycentric-Track " << out.write_bary_track << std::endl;
+			outstream << "Split-Track-File " << out.split_track_file << std::endl;
 			outstream << "Write-Split-Output " << out.writesplit << std::endl;
 			outstream << "Write-Binary-Output " << out.writebinary << std::endl;
 			outstream << "Read-Split-Input " << out.readsplit << std::endl;
 			outstream << "Read-Binary-Input " << out.readbinary << std::endl;
-			outstream << "Input-File " << out.hybridin << std::endl;
-			outstream << "Output-Folder " << out.outfolder << std::endl;
-			outstream << "Particle-Input-File " << out.icsin << std::endl;
-			outstream << "Planet-Input-File " << out.plin << std::endl;
-			outstream << "Read-Input-Momenta " << out.readmomenta << std::endl;
-			outstream << "Write-Output-Momenta " << out.writemomenta << std::endl;
+			if(out.icsin != "") outstream << "Particle-Input-File " << out.icsin << std::endl;
+			if(out.plin != "") outstream << "Planet-Input-File " << out.plin << std::endl;
+			outstream << "Max-Kepler-Iterations " << out.max_kep << std::endl;
+			outstream << "Big-G " << out.big_g << std::endl;
+			outstream << "Cull-Radius " << out.cull_radius << std::endl;
+			outstream << "Limit-Particle-Count " << out.max_particle << std::endl;
 		}
 
 		bool load_planet_data(HostPlanetPhaseSpace &pl, const Configuration &config, std::istream &plin)
@@ -525,11 +509,6 @@ namespace sr
 			{
 				for (size_t i = 0; i < pl.n(); i++)
 				{
-					if (config.readmomenta)
-					{
-						pl.v()[i] /= pl.m()[i];
-					}
-
 					pl.m()[i] *= config.big_g;
 				}
 
@@ -549,8 +528,6 @@ namespace sr
 				write_binary(out, pl.id[i]);
 				write_binary(out, m);
 
-				if (!config.writemomenta)
-					m = 1;
 				write_binary(out, pl.r[i].x);
 				write_binary(out, pl.r[i].y);
 				write_binary(out, pl.r[i].z);
@@ -583,8 +560,6 @@ namespace sr
 			{
 				double m = pl.m[i];
 				out << m << std::endl;
-				if (!config.writemomenta)
-					m = 1;
 				out << pl.r[i].x << " " << pl.r[i].y << " " << pl.r[i].z << std::endl;
 				out << pl.v[i].x * m << " " << pl.v[i].y * m << " " << pl.v[i].z * m << std::endl;
 				out << pl.id[i] << std::endl;
@@ -609,9 +584,6 @@ namespace sr
 			{
 				double m = pl.m[i];
 				plout << m << std::endl;
-
-				if (!config.writemomenta)
-					m = 1;
 				plout << pl.r[i].x << " " << pl.r[i].y << " " << pl.r[i].z << std::endl;
 				plout << pl.v[i].x * m << " " << pl.v[i].y * m << " " << pl.v[i].z * m << std::endl;
 			}

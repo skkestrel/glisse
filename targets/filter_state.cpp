@@ -159,7 +159,6 @@ int main(int argc, char** argv)
 
 		config.hybridin = args["<input>"].asString();
 		config.readbinary = args["--binary"].asBool();
-		config.readmomenta = false;
 
 		load_data(hd.planets, hd.particles, config);
 		hd.particles.sort_by_id(0, hd.particles.n());

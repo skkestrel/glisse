@@ -345,10 +345,7 @@ namespace data
 	{
 		uint32_t max_kep;
 		double t_0, t_f, dt, big_g;
-		uint32_t num_thread;
 		uint32_t tbsize, print_every, dump_every, track_every, energy_every, max_particle;
-		double wh_ce_r1, wh_ce_r2;
-		uint32_t wh_ce_n1, wh_ce_n2;
 		uint32_t split_track_file;
 
 		uint32_t resync_every;
@@ -357,9 +354,9 @@ namespace data
 
 		double cull_radius;
 
-		bool readmomenta, writemomenta, trackbinary, readsplit, writesplit, dumpbinary, writebinary, readbinary;
+		bool trackbinary, readsplit, writesplit, dumpbinary, writebinary, readbinary;
 
-		std::string icsin, plin, hybridin, hybridout;
+		std::string icsin, plin, hybridin;
 		std::string outfolder;
 
 		Configuration();
@@ -377,9 +374,6 @@ namespace data
 			Configuration config;
 			config.write_bary_track = false;
 			config.tbsize = 0;
-			config.wh_ce_n1 = 0;
-			config.wh_ce_n2 = 0;
-
 			return config;
 		}
 	};
