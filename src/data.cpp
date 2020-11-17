@@ -169,13 +169,15 @@ namespace sr
 
 			max_kep = 10;
 			big_g = 1;
-			cull_radius = 0.5;
+			hill_factor = 1;
+			solar_radius = 0.005;
+			outer_bound = 1500;
 			max_particle = static_cast<uint32_t>(-1);
 		}
 
 		Configuration Configuration::output_config() const
 		{
-#pragma GCC warning "TODO"
+			// #pragma GCC warning "TODO"
 			return *this;
 		}
 
@@ -248,8 +250,12 @@ namespace sr
 						out->max_kep = std::stou(second);
 					else if (first == "Big-G")
 						out->big_g = std::stod(second);
-					else if (first == "Cull-Radius")
-						out->cull_radius = std::stod(second);
+					else if (first == "Hill-Radius-Factor")
+						out->hill_factor = std::stod(second);
+					else if (first == "Solar-Radius")
+						out->solar_radius = std::stod(second);
+					else if (first == "Particle-Outer-Boundary")
+						out->outer_bound = std::stod(second);
 					else if (first == "Limit-Particle-Count")
 						out->max_particle = std::stou(second);
 					else
@@ -289,7 +295,8 @@ namespace sr
 		void write_configuration(std::ostream &outstream, const Configuration &out)
 		{
 			outstream << std::setprecision(17);
-			if(out.hybridin != "") outstream << "Input-File " << out.hybridin << std::endl;
+			if (out.hybridin != "")
+				outstream << "Input-File " << out.hybridin << std::endl;
 			outstream << "Initial-Time " << out.t_0 << std::endl;
 			outstream << "Time-Step " << out.dt << std::endl;
 			outstream << "Final-Time " << out.t_f << std::endl;
@@ -307,11 +314,15 @@ namespace sr
 			outstream << "Write-Binary-Output " << out.writebinary << std::endl;
 			outstream << "Read-Split-Input " << out.readsplit << std::endl;
 			outstream << "Read-Binary-Input " << out.readbinary << std::endl;
-			if(out.icsin != "") outstream << "Particle-Input-File " << out.icsin << std::endl;
-			if(out.plin != "") outstream << "Planet-Input-File " << out.plin << std::endl;
+			if (out.icsin != "")
+				outstream << "Particle-Input-File " << out.icsin << std::endl;
+			if (out.plin != "")
+				outstream << "Planet-Input-File " << out.plin << std::endl;
 			outstream << "Max-Kepler-Iterations " << out.max_kep << std::endl;
 			outstream << "Big-G " << out.big_g << std::endl;
-			outstream << "Cull-Radius " << out.cull_radius << std::endl;
+			outstream << "Hill-Radius-Factor " << out.hill_factor << std::endl;
+			outstream << "Solar-Radius " << out.solar_radius << std::endl;
+			outstream << "Particle-Outer-Boundary " << out.outer_bound << std::endl;
 			outstream << "Limit-Particle-Count " << out.max_particle << std::endl;
 		}
 

@@ -24,8 +24,9 @@ namespace wh
 		const uint32_t maxkep;
 
 		const float64_t* planet_rh;
+		const float64_t outer_bound;
 
-		MVSKernel(const DevicePlanetPhaseSpace& planets, const Dvf64_3& h0_log, const Dvf64& _planet_rh, uint32_t _tbsize, float64_t _dt, uint32_t _maxkep) :
+		MVSKernel(const DevicePlanetPhaseSpace& planets, const Dvf64_3& h0_log, const Dvf64& _planet_rh, double _outer_bound, uint32_t _tbsize, float64_t _dt, uint32_t _maxkep) :
 			planet_m(planets.m.data().get()),
 			mu(planets.m[0]),
 			planet_h0_log(h0_log.data().get()),
@@ -34,6 +35,7 @@ namespace wh
 			tbsize(_tbsize),
 			dt(_dt),
 			planet_rh(_planet_rh.data().get()),
+			outer_bound(_outer_bound),
 			maxkep(_maxkep)
 		{ }
 
@@ -107,7 +109,7 @@ done: ;
 
 		__host__ __device__
 		static void step_forward(f64_3& r, f64_3& v, uint16_t& flags, f64_3& a, uint32_t& deathtime_index, uint32_t _tbsize,
-				uint32_t planet_n, const f64_3* h0_log, const f64_3* r_log, const float64_t* m, const float64_t* rh, float64_t dt, float64_t mu, uint32_t maxkep)
+				uint32_t planet_n, const f64_3* h0_log, const f64_3* r_log, const float64_t* m, const float64_t* rh, float64_t outer_bound, float64_t dt, float64_t mu, uint32_t maxkep)
 		{
 			deathtime_index = 0;
 
@@ -147,7 +149,7 @@ done: ;
 						flags = flags & 0x00FF;
 						flags = flags | 0x0001;
 					}
-					if (rad > 500 * 500)
+					if (rad > outer_bound * outer_bound)
 					{
 						flags = flags | 0x0002;
 					}
@@ -169,8 +171,11 @@ done: ;
 			const f64_3* r_log = this->planet_r_log;
 			const float64_t* m = this->planet_m;
 			const float64_t* rh = this->planet_rh;
+			float64_t _outer_bound = this->outer_bound;
 			float64_t _dt = this->dt;
 			float64_t _mu = this->mu;
+			uint32_t _maxkep = this->maxkep;
+
 
 
 			f64_3 r = thrust::get<0>(thrust::get<0>(args));
@@ -180,7 +185,7 @@ done: ;
 			f64_3 a = thrust::get<1>(args);
 
 			step_forward(r, v, flags, a, deathtime_index, _tbsize,
-				planet_n, h0_log, r_log, m, rh, _dt, _mu, this->maxkep);
+				planet_n, h0_log, r_log, m, rh, _outer_bound, _dt, _mu, _maxkep);
 
 			thrust::get<0>(thrust::get<0>(args)) = r;
 			thrust::get<1>(thrust::get<0>(args)) = v;
@@ -193,7 +198,7 @@ done: ;
 
 	__global__
 	void MVSKernel_(f64_3* r, f64_3* v, uint16_t* flags, f64_3* a, uint32_t* deathtime_index,
-		uint32_t n, uint32_t tbsize, uint32_t planet_n, const f64_3* h0_log, const f64_3* r_log, const float64_t* m, const float64_t* rh, float64_t dt, float64_t mu, uint32_t maxkep)
+		uint32_t n, uint32_t tbsize, uint32_t planet_n, const f64_3* h0_log, const f64_3* r_log, const float64_t* m, const float64_t* rh, float64_t outer_bound, float64_t dt, float64_t mu, uint32_t maxkep)
 	{
 		// per 1 timestep: (1 + planet_n) vec3s of float64
 		// assume up to 16 planets, so 17 * 3 * 8 = 408 byte per timestep
@@ -228,7 +233,7 @@ done: ;
 			uint32_t deathtime_indexi;
 		
 			MVSKernel::step_forward(ri, vi, flagsi, ai, deathtime_indexi, tbsize,
-					planet_n, h0_log_shared, r_log_shared, m, rh, dt, mu, maxkep);
+					planet_n, h0_log_shared, r_log_shared, m, rh, outer_bound, dt, mu, maxkep);
 
 			r[i] = ri;
 			v[i] = vi;
@@ -251,6 +256,7 @@ done: ;
 		device_planet_rh = Dvf64(pl.n());
 
 		memcpy_htd(device_planet_rh, base.planet_rh, 0);
+		outer_bound = config.outer_bound;
 		maxkep = config.max_kep;
 		cudaStreamSynchronize(0);
 	}
@@ -281,6 +287,11 @@ done: ;
 		base.integrate_particles_timeblock(pl, pa, begin, length, t);
 	}
 
+	void WHCudaIntegrator::recalculate_rh(const HostPlanetPhaseSpace& pl)
+	{
+		base.recalculate_rh(pl);
+	}
+
 	void WHCudaIntegrator::swap_logs()
 	{
 		base.swap_logs();
@@ -296,7 +307,7 @@ done: ;
 	{
 #ifndef CUDA_USE_SHARED_MEM_CACHE
 		auto it = thrust::make_zip_iterator(thrust::make_tuple(pa.begin(), device_begin()));
-		thrust::for_each(thrust::cuda::par.on(stream), it, it + pa.n_alive, MVSKernel(pl, device_h0_log(planet_data_id), device_planet_rh, static_cast<uint32_t>(base.tbsize), base.dt, maxkep));
+		thrust::for_each(thrust::cuda::par.on(stream), it, it + pa.n_alive, MVSKernel(pl, device_h0_log(planet_data_id), device_planet_rh, outer_bound, static_cast<uint32_t>(base.tbsize), base.dt, maxkep));
 #else
 		cudaDeviceProp prop;
 		cudaGetDeviceProperties(&prop, 0);

@@ -18,6 +18,7 @@ namespace wh
 		Dvf64 device_planet_rh;
 
 		uint32_t maxkep;
+		float64_t outer_bound;
 
 		Dvf64_3 device_h0_log_0, device_h0_log_1;
 
@@ -30,6 +31,7 @@ namespace wh
 		void integrate_particles_timeblock_cuda(cudaStream_t stream, size_t planet_data_id, const DevicePlanetPhaseSpace& pl, DeviceParticlePhaseSpace& pa);
 		void upload_data_cuda(cudaStream_t stream, size_t begin, size_t length);
 		void upload_planet_log_cuda(cudaStream_t stream, size_t planet_data_id);
+		void recalculate_rh(const HostPlanetPhaseSpace& pl);
 		void swap_logs();
 
 		Dvf64_3& device_h0_log(size_t planet_data_id);

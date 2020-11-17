@@ -8,7 +8,13 @@
 * Sorted configurations by a logical order.
 * Output "Particle-Input-File" and "Planet-Input-File" only if they are not empty.
 
-## TO DO
+## 2020-11-16
+* Replaced "Cull-Raidius" with "Hill-Radius-Factor" (constants that won't update);
+* Added "Solar-Radius" and "Particle-Outer-Boundary" that defines the inner and outer boundaries for ejecting test particles. (won't affect planets, planets won't be discarded at all in GLISSE?)
+
+Note: It seems that the particle discarded time has been implemented into GPU already.
+
+## TO DO (ALL DONE)
 * Change Cull-Radius documentation to indicate this is in units of Hill radii
 * Introduce Cull radius code to compute this at code start and pass to GPU
 * Eliminate CPU-Thread-Count ?  (from docs and make sure appears nowhere in code). DONE.
