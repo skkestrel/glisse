@@ -1,0 +1,25 @@
+
+Input-File state.in
+Initial-Time 0
+Time-Step 100
+Final-Time 5000000
+Time-Block-Size 1000
+Output-Folder output
+Log-Interval 10
+Energy-Interval 10
+Track-Interval 10
+Resync-Interval 1
+Dump-Interval 10
+Keep-All-Dumps 1
+Write-Barycentric-Track 0
+Split-Track-File 0
+Write-Split-Output 0
+Write-Binary-Output 0
+Read-Split-Input 0
+Read-Binary-Input 0
+Max-Kepler-Iterations 10
+Big-G 1
+Hill-Radius-Factor 1
+Particle-Inner-Boundary 0.005
+Particle-Outer-Boundary 1500
+Limit-Particle-Count 200000

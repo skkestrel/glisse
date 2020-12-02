@@ -349,11 +349,11 @@ namespace sr
 
 			bool write_bary_track, keep_all_dumps;
 
-			double hill_factor, solar_radius, outer_bound;
+			double hill_factor, inner_bound, outer_bound;
 
 			bool trackbinary, readsplit, writesplit, dumpbinary, writebinary, readbinary;
 
-			std::string icsin, plin, hybridin;
+			std::string icsin, plin, hybridin, hybridout;
 			std::string outfolder;
 
 			Configuration();

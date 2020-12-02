@@ -27,7 +27,7 @@ days and au, the solar mass should be set to 4 * pi^2 / (365.25)^2 = 2.959 x 10^
 | Time-Block-Size | The timeblock size or the planetary chunk size. The number of timesteps that the GPU will advance in one kernel launch. | 1024 |
 | Output-Folder | The path of the output folder. | |
 | Log-Interval | The integrator will print the current progress every Log-Interval number of timeblocks. 0 to disable. | 10 |
-| Status-Interval | The integrator will write the integration status to the file named `status` in the project output directory every Status-Interval number of timeblocks. 0 to disable. See below. | 1 |
+| Energy-Interval | The integrator will write the integration status to the file named `status` in the project output directory every Energy-Interval number of timeblocks. 0 to disable. See below. | 1 |
 | Track-Interval | The integrator will write orbital elements to the integration track every Track-Interval number of timeblocks. See below. 0 to disable. | 0 |
 | Resync-Interval | The integrator will sort ("defragment") the GPU particle array every Resync-Interval. This parameter should be increased when Time-Block-Size is small for performance. | 1 |
 | Dump-Interval | The integrator will dump particle and planet states to a folder named `dumps' in the output directory every Dump-Interval number of timeblocks. 0 to disable. | 1000 |
@@ -43,7 +43,7 @@ days and au, the solar mass should be set to 4 * pi^2 / (365.25)^2 = 2.959 x 10^
 | Max-Kepler-Iterations | Number of interations GPU does when solving for the Kepler's equation using Newton' iterative method | 10 |
 | Big-G | Gravitaional consant | 1 |
 | Hill-Radius-Factor | Particles are deactivated if they come within this multiple of any planetary hill spheres | 1 |
-| Solar-Radius | Particles are deactivated if they come within this distantce from the central body | 0.005 |
+| Particle-Inner-Boundary | Particles are deactivated if they come within this distantce from the central body | 0.005 |
 | Particle-Outer-Boundary | Particles are deactivated if they are far from this distantce | 1500 |
 | Limit-Particle-Count | Maximum number of particles |  |
 

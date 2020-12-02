@@ -141,8 +141,8 @@ namespace sr
 				// to be a multiple of the planet's respective hill sphere.
 			}
 
-			// [Probe] Set solar_radius as the radius of the Sun.
-			planet_rh[0] = config.solar_radius;
+			// [Probe] Set inner_bound as the radius of the Sun.
+			planet_rh[0] = config.inner_bound;
 			recalculate_rh(pl);
 
 			sr::convert::helio_to_jacobi_r_planets(pl, planet_eta, planet_rj);

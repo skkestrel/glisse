@@ -3,9 +3,12 @@
 *.in
 !data/*.out
 !data/*.in
+!benchmark/*
+!benchmark/*/*
 script/__pycache__
 prof
 bin
 obj
 example
 .vscode
+stdout

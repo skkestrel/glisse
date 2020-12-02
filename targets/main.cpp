@@ -182,6 +182,7 @@ int main(int argc, char **argv)
 				}
 			});
 
+			bool noalive = ex.hd.particles.n_alive() == 0;
 			bool dump = config.dump_every != 0 && counter % config.dump_every == 0;
 			bool track = config.track_every != 0 && counter % config.track_every == 0;
 
@@ -234,6 +235,21 @@ int main(int argc, char **argv)
 				}
 			}
 
+			if (noalive) 
+			{
+				tout << "No test particles is alive. Glisse will end after the final dump finishes" << std::endl;
+				ex.download_data();
+				sr::data::Configuration out_config = config.output_config();
+				out_config.t_f = config.t_f;
+				out_config.t_0 = ex.t;
+
+				tout << "Dumping to disk. t = " << ex.t << std::endl;
+				std::ofstream configout(sr::util::joinpath(config.outfolder, "config_break.out"));
+				write_configuration(configout, out_config);
+				save_data(ex.hd.planets_snapshot, ex.hd.particles, config,  sr::util::joinpath(config.outfolder, "state_break.out"));
+				break;				
+			}
+
 			if (end_loop)
 			{
 				tout << "Caught signal. What do you want to do?" << std::endl;
@@ -273,14 +289,14 @@ int main(int argc, char **argv)
 							ex.download_data();
 						}
 						sr::data::Configuration out_config = config.output_config();
-						out_config.t_f = config.t_f - config.t_0 + ex.t;
+						out_config.t_f = config.t_f;
 						out_config.t_0 = ex.t;
-						out_config.writesplit = false;
 
 						tout << "Dumping to disk. t = " << ex.t << std::endl;
 						std::ofstream configout(tokens[1]);
 						write_configuration(configout, out_config);
 						save_data(ex.hd.planets_snapshot, ex.hd.particles, config, tokens[2]);
+						break;
 					}
 					else
 					{
@@ -288,6 +304,7 @@ int main(int argc, char **argv)
 					}
 				}
 				// TODO add option to edit configuration
+				break;
 			}
 		}
 	}

@@ -14,7 +14,7 @@ Resolve-Encounters 0
 Split-Track-File 0
 Track-Interval 0
 Log-Interval 128
-Status-Interval 1
+Energy-Interval 1
 Resync-Interval {4}
 CPU-Thread-Count 1
 Output-Folder temp-data

@@ -33,7 +33,7 @@ namespace sr
 			sr::util::LogQuartet<Vf64_3> planet_h0_log;
 
 			Vf64 planet_rh;
-			double solar_radius, outer_bound, hill_factor;
+			double inner_bound, outer_bound, hill_factor;
 
 			size_t tbsize;
 

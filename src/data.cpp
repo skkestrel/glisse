@@ -170,7 +170,7 @@ namespace sr
 			max_kep = 10;
 			big_g = 1;
 			hill_factor = 1;
-			solar_radius = 0.005;
+			inner_bound = 0.005;
 			outer_bound = 1500;
 			max_particle = static_cast<uint32_t>(-1);
 		}
@@ -220,7 +220,7 @@ namespace sr
 						out->outfolder = second;
 					else if (first == "Log-Interval")
 						out->print_every = std::stou(second);
-					else if (first == "Status-Interval")
+					else if (first == "Energy-Interval")
 						out->energy_every = std::stou(second);
 					else if (first == "Track-Interval")
 						out->track_every = std::stou(second);
@@ -252,8 +252,8 @@ namespace sr
 						out->big_g = std::stod(second);
 					else if (first == "Hill-Radius-Factor")
 						out->hill_factor = std::stod(second);
-					else if (first == "Solar-Radius")
-						out->solar_radius = std::stod(second);
+					else if (first == "Particle-Inner-Boundary")
+						out->inner_bound = std::stod(second);
 					else if (first == "Particle-Outer-Boundary")
 						out->outer_bound = std::stod(second);
 					else if (first == "Limit-Particle-Count")
@@ -303,7 +303,7 @@ namespace sr
 			outstream << "Time-Block-Size " << out.tbsize << std::endl;
 			outstream << "Output-Folder " << out.outfolder << std::endl;
 			outstream << "Log-Interval " << out.print_every << std::endl;
-			outstream << "Status-Interval " << out.energy_every << std::endl;
+			outstream << "Energy-Interval " << out.energy_every << std::endl;
 			outstream << "Track-Interval " << out.track_every << std::endl;
 			outstream << "Resync-Interval " << out.resync_every << std::endl;
 			outstream << "Dump-Interval " << out.dump_every << std::endl;
@@ -321,7 +321,7 @@ namespace sr
 			outstream << "Max-Kepler-Iterations " << out.max_kep << std::endl;
 			outstream << "Big-G " << out.big_g << std::endl;
 			outstream << "Hill-Radius-Factor " << out.hill_factor << std::endl;
-			outstream << "Solar-Radius " << out.solar_radius << std::endl;
+			outstream << "Particle-Inner-Boundary " << out.inner_bound << std::endl;
 			outstream << "Particle-Outer-Boundary " << out.outer_bound << std::endl;
 			outstream << "Limit-Particle-Count " << out.max_particle << std::endl;
 		}
